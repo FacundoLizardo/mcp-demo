@@ -1,75 +1,43 @@
-import { McpAgent } from "agents/mcp";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { z } from "zod";
+// src/index.ts - Main Cloudflare Worker Entry Point
 
-// Define our MCP agent with tools
-export class MyMCP extends McpAgent {
-	server = new McpServer({
-		name: "Authless Calculator",
-		version: "1.0.0",
-	});
+import { MyMCP } from './agents/MyMCP'; // Import your MyMCP Durable Object class
+import { Env } from './types/env';     // Import the Env interface
 
-	async init() {
-		// Simple addition tool
-		this.server.tool(
-			"add",
-			{ a: z.number(), b: z.number() },
-			async ({ a, b }) => ({
-				content: [{ type: "text", text: String(a + b) }],
-			})
-		);
 
-		// Calculator tool with multiple operations
-		this.server.tool(
-			"calculate",
-			{
-				operation: z.enum(["add", "subtract", "multiply", "divide"]),
-				a: z.number(),
-				b: z.number(),
-			},
-			async ({ operation, a, b }) => {
-				let result: number;
-				switch (operation) {
-					case "add":
-						result = a + b;
-						break;
-					case "subtract":
-						result = a - b;
-						break;
-					case "multiply":
-						result = a * b;
-						break;
-					case "divide":
-						if (b === 0)
-							return {
-								content: [
-									{
-										type: "text",
-										text: "Error: Cannot divide by zero",
-									},
-								],
-							};
-						result = a / b;
-						break;
-				}
-				return { content: [{ type: "text", text: String(result) }] };
-			}
-		);
-	}
-}
+// Export the MyMCP Durable Object class.
+// This is crucial for Cloudflare Workers to correctly identify and bind the Durable Object.
+export { MyMCP };
 
+/**
+ * The default fetch handler for the Cloudflare Worker.
+ * This function serves as the entry point for all incoming HTTP requests.
+ * It routes requests to either the SSE handler or the MCP agent handler.
+ * @param request The incoming HTTP request.
+ * @param env The environment variables and bound resources for the Worker.
+ * @param ctx The execution context, providing utilities like waitUntil.
+ * @returns A Response object for the incoming request.
+ */
 export default {
-	fetch(request: Request, env: Env, ctx: ExecutionContext) {
-		const url = new URL(request.url);
+    fetch(request: Request, env: Env, ctx: ExecutionContext): Response | Promise<Response> {
+        const url = new URL(request.url);
 
-		if (url.pathname === "/sse" || url.pathname === "/sse/message") {
-			return MyMCP.serveSSE("/sse").fetch(request, env, ctx);
-		}
+        // Route requests to the Server-Sent Events (SSE) handler.
+        // SSE is used for real-time, one-way communication from the server to the client,
+        // often used for streaming agent responses or updates.
+        if (url.pathname === "/sse" || url.pathname === "/sse/message") {
+            // MyMCP.serveSSE creates a handler for SSE connections.
+            return MyMCP.serveSSE("/sse").fetch(request, env, ctx);
+        }
 
-		if (url.pathname === "/mcp") {
-			return MyMCP.serve("/mcp").fetch(request, env, ctx);
-		}
+        // Route requests to the Model Context Protocol (MCP) agent handler.
+        // This is the primary endpoint for interacting with your agent,
+        // sending tool invocation requests.
+        if (url.pathname === "/mcp") {
+            // MyMCP.serve creates a handler for MCP protocol requests.
+            return MyMCP.serve("/mcp").fetch(request, env, ctx);
+        }
 
-		return new Response("Not found", { status: 404 });
-	},
+        // For any other unhandled paths, return a 404 Not Found response.
+        return new Response("Not found", { status: 404 });
+    },
 };

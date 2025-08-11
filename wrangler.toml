@@ -1,0 +1,14 @@
+# wrangler.toml
+name = "mcp-demo"
+type = "javascript" # Or "typescript"
+
+# ... other configurations ...
+
+[durable_objects]
+bindings = [
+    { name = "MCP_OBJECT", class_name = "MyMCP" }
+]
+
+# These variables will be passed to the 'env' object of your MyMCP Durable Object.
+# IMPORTANT: FOR LOCAL DEVELOPMENT ONLY. DO NOT COMMIT SENSITIVE SECRETS TO GIT.
+# For production, set these via the Cloudflare Dashboard (see section below).
