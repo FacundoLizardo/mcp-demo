@@ -1,28 +1,36 @@
-/**
- * For more details on how to configure Wrangler, refer to:
- * https://developers.cloudflare.com/workers/wrangler/configuration/
- */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "mcp-demo",
+	"name": "tu-mcp-server",
 	"main": "src/index.ts",
 	"compatibility_date": "2025-03-10",
 	"compatibility_flags": ["nodejs_compat"],
-	"migrations": [
-		{
-			"new_sqlite_classes": ["MyMCP"],
-			"tag": "v1"
-		}
-	],
+  
 	"durable_objects": {
-		"bindings": [
-			{
-				"class_name": "MyMCP",
-				"name": "MCP_OBJECT"
-			}
-		]
+	  "bindings": [
+		{ "name": "MCP_OBJECT", "class_name": "OdooMCP" }
+	  ]
 	},
-	"observability": {
-		"enabled": true
+  
+	"migrations": [
+	  {
+		"tag": "v1",
+		"new_sqlite_classes": ["OdooMCP"]
+	  }
+	],
+  
+	"observability": { "enabled": true },
+  
+	"vars": {
+	  "ODOO_URL": "https://tu-odoo-instance.com",
+	  "ODOO_DB": "tu_database",
+	  "ODOO_USER": "usuario@ejemplo.com",
+	  "ODOO_PASS": "tu_password",
+	  "ODOO_TIMEOUT": "60000",
+	  "ALGOLIA_API_KEY": "",
+	  "ALGOLIA_APP_ID": "",
+	  "ALGOLIA_INDEX_NAME": "",
+	  "LABUREN_API_KEY": "",
+	  "TO_USE": "[\"search_product_by_reference_code\", \"create_sale_order\"]"
 	}
-}
+  }
+  

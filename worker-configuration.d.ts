@@ -5,6 +5,16 @@ declare namespace Cloudflare {
 		OAUTH_KV: KVNamespace;
 		MCP_OBJECT: DurableObjectNamespace<import("./src/index").MyMCP>;
 		ASSETS: Fetcher;
+		TO_USE?: string;
+		ODOO_URL?: string;
+		ODOO_DB?: string;
+		ODOO_USER?: string;
+		ODOO_PASS?: string;
+		ODOO_TIMEOUT?: string;
+		ALGOLIA_API_KEY?: string;
+		ALGOLIA_APP_ID?: string;
+		ALGOLIA_INDEX_NAME?: string;
+		LABUREN_API_KEY?: string;
 	}
 }
 interface Env extends Cloudflare.Env {}
